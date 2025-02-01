@@ -1,11 +1,9 @@
 name: Terraform CI/CD
 
 on:
-  # Trigger on push to main branch or other specific branches
   push:
     branches:
-      - main  # or any branch you want to trigger the pipeline on
-  # Allow manual trigger of the workflow
+      - main  # Workflow triggered on push to the 'main' branch
   workflow_dispatch:
     inputs:
       environment:
@@ -19,40 +17,68 @@ on:
         options:
           - apply
           - destroy
+      instance_type:
+        description: 'Type of EC2 instance'
+        required: true
+        default: 't2.micro'
+      ami_id:
+        description: 'AMI ID to use for EC2 instance'
+        required: true
+        default: 'ami-04b4f1a9cf54c11d0'
+      ssh_access_cidr:
+        description: 'CIDR block for SSH access'
+        required: true
+        default: '10.0.0.0/16'
+      key_name:
+        description: 'SSH key name for EC2 instance'
+        required: true
+        default: 'test111'
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Set up Terraform
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
 
-      # Step 3: Run Terraform Init
       - name: Terraform Init
         run: terraform init
 
-      # Step 4: Run Terraform Plan
       - name: Terraform Plan
-        run: terraform plan -var="environment=${{ github.event.inputs.environment }}"
+        run: terraform plan \
+          -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+          -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          -var="aws_region=${{ secrets.AWS_REGION }}" \
+          -var="environment=${{ github.event.inputs.environment }}" \
+          -var="instance_type=${{ github.event.inputs.instance_type }}" \
+          -var="ami_id=${{ github.event.inputs.ami_id }}" \
+          -var="ssh_access_cidr=${{ github.event.inputs.ssh_access_cidr }}" \
+          -var="key_name=${{ github.event.inputs.key_name }}"
 
-      # Step 5: Run Terraform Apply or Destroy based on input or push
       - name: Terraform Apply
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.event.inputs.action == 'apply'
-        run: terraform apply -auto-approve -var="environment=${{ github.event.inputs.environment }}"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        if: github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve \
+          -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+          -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          -var="aws_region=${{ secrets.AWS_REGION }}" \
+          -var="environment=${{ github.event.inputs.environment }}" \
+          -var="instance_type=${{ github.event.inputs.instance_type }}" \
+          -var="ami_id=${{ github.event.inputs.ami_id }}" \
+          -var="ssh_access_cidr=${{ github.event.inputs.ssh_access_cidr }}" \
+          -var="key_name=${{ github.event.inputs.key_name }}"
 
-      # Step 6: Run Terraform Destroy (only when the input action is 'destroy' or manually triggered)
       - name: Terraform Destroy
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy')
-        run: terraform destroy -auto-approve -var="environment=${{ github.event.inputs.environment }}"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        if: github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve \
+          -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+          -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          -var="aws_region=${{ secrets.AWS_REGION }}" \
+          -var="environment=${{ github.event.inputs.environment }}" \
+          -var="instance_type=${{ github.event.inputs.instance_type }}" \
+          -var="ami_id=${{ github.event.inputs.ami_id }}" \
+          -var="ssh_access_cidr=${{ github.event.inputs.ssh_access_cidr }}" \
+          -var="key_name=${{ github.event.inputs.key_name }}"
