@@ -1,6 +1,3 @@
-# infrastructure-as-code-with-terraform
-Use Terraform to provision infrastructure like EC2 instances, databases, and load balancers.
-
 # Infrastructure as Code (IaC) with Terraform
 
 This project demonstrates how to use Terraform to provision infrastructure on AWS, including EC2 instances, databases, and load balancers.
