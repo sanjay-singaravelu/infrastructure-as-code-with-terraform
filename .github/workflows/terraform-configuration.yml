@@ -17,22 +17,6 @@ on:
         options:
           - apply
           - destroy
-      instance_type:
-        description: 'Type of EC2 instance'
-        required: true
-        default: 't2.micro'
-      ami_id:
-        description: 'AMI ID to use for EC2 instance'
-        required: true
-        default: 'ami-04b4f1a9cf54c11d0'
-      ssh_access_cidr:
-        description: 'CIDR block for SSH access'
-        required: true
-        default: '10.0.0.0/16'
-      key_name:
-        description: 'SSH key name for EC2 instance'
-        required: true
-        default: 'test111'
 
 jobs:
   terraform:
@@ -49,36 +33,12 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan \
-          -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-          -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-          -var="aws_region=${{ secrets.AWS_REGION }}" \
-          -var="environment=${{ github.event.inputs.environment }}" \
-          -var="instance_type=${{ github.event.inputs.instance_type }}" \
-          -var="ami_id=${{ github.event.inputs.ami_id }}" \
-          -var="ssh_access_cidr=${{ github.event.inputs.ssh_access_cidr }}" \
-          -var="key_name=${{ github.event.inputs.key_name }}"
+        run: terraform plan -var-file="terraform.tfvars"
 
       - name: Terraform Apply
         if: github.event.inputs.action == 'apply'
-        run: terraform apply -auto-approve \
-          -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-          -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-          -var="aws_region=${{ secrets.AWS_REGION }}" \
-          -var="environment=${{ github.event.inputs.environment }}" \
-          -var="instance_type=${{ github.event.inputs.instance_type }}" \
-          -var="ami_id=${{ github.event.inputs.ami_id }}" \
-          -var="ssh_access_cidr=${{ github.event.inputs.ssh_access_cidr }}" \
-          -var="key_name=${{ github.event.inputs.key_name }}"
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"
 
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy'
-        run: terraform destroy -auto-approve \
-          -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-          -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-          -var="aws_region=${{ secrets.AWS_REGION }}" \
-          -var="environment=${{ github.event.inputs.environment }}" \
-          -var="instance_type=${{ github.event.inputs.instance_type }}" \
-          -var="ami_id=${{ github.event.inputs.ami_id }}" \
-          -var="ssh_access_cidr=${{ github.event.inputs.ssh_access_cidr }}" \
-          -var="key_name=${{ github.event.inputs.key_name }}"
+        run: terraform destroy -auto-approve -var-file="terraform.tfvars"
