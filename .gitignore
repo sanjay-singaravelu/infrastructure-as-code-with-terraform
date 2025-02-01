@@ -1,0 +1,21 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfplan
+.terraform.lock.hcl
+
+# AWS credentials and config (if you don't use IAM roles)
+.aws/
+
+# Environment variable files
+.env
+
+# Ignore sensitive information
+*.key
+*.pem
+
+# Logs and temporary files
+*.log
